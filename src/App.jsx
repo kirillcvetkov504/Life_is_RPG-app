@@ -1,51 +1,225 @@
 import React, { useState, useEffect } from 'react';
 import {
   User, Heart, Target, Calendar as CalIcon, Bot, Shield,
-  Flame, Settings, Plus, Trash2, CheckCircle2, Clock, Camera,
-  Droplets, Moon, Dumbbell, Trophy, Crown, Lock, Sparkles,
-  Sun, Globe, ExternalLink, Check, RotateCcw, Send, Scale, AlertCircle
+  Flame, Settings, Trash2, Clock, Droplets, Moon, Dumbbell,
+  Trophy, Crown, Lock, Sparkles, Sun, Globe, ExternalLink,
+  Check, RotateCcw, Send, Scale
 } from 'lucide-react';
 
 const API_BASE = "https://rpg-bot-v4s3.onrender.com";
 const ADMIN_ID = 1210391242;
 
-const QUESTIONS_16 = [
-  "Чем бы я занимался, если бы у меня уже было 100 миллионов долларов?",
-  "Что забирает у меня энергию?",
-  "Кто в моём окружении тянет меня вниз и почему я это терплю?",
-  "Кто в моём окружении заряжает меня энергией и почему я провожу с этими людьми так мало времени?",
-  "Что наполняет меня энергией?",
-  "В какие моменты жизни я полностью забываю про время?",
-  "Что я лично для себя считаю успехом?",
-  "Если бы я действительно наплевал на мнение окружающих, чем бы я занимался?",
-  "Сколько денег мне на самом деле нужно, чтобы чувствовать себя свободным?",
-  "Как выглядит мой идеальный обычный день?",
-  "Какое моё убеждение о самом себе мешает мне больше всего?",
-  "О чём я буду сожалеть через 10 лет, если не сделаю этого сегодня?",
-  "Как выглядит самое простое действие, которое двигает меня вперёд прямо сейчас?",
-  "Если бы у меня был всего один час в день для достижения цели, что бы я делал?",
-  "Как бы я действовал, если бы знал, что в конце концов всё равно получится?",
-  "Какой совет я могу дать самому себе прямо сейчас?"
-];
+const QUESTIONS_16_DATA = {
+  ru: [
+    "Чем бы я занимался, если бы у меня уже было 100 миллионов долларов?",
+    "Что забирает у меня энергию?",
+    "Кто в моём окружении тянет меня вниз и почему я это терплю?",
+    "Кто в моём окружении заряжает меня энергией и почему я провожу с этими людьми так мало времени?",
+    "Что наполняет меня энергией?",
+    "В какие моменты жизни я полностью забываю про время?",
+    "Что я лично для себя считаю успехом?",
+    "Если бы я действительно наплевал на мнение окружающих, чем бы я занимался?",
+    "Сколько денег мне на самом деле нужно, чтобы чувствовать себя свободным?",
+    "Как выглядит мой идеальный обычный день?",
+    "Какое моё убеждение о самом себе мешает мне больше всего?",
+    "О чём я буду сожалеть через 10 лет, если не сделаю этого сегодня?",
+    "Как выглядит самое простое действие, которое двигает меня вперёд прямо сейчас?",
+    "Если бы у меня был всего один час в день для достижения цели, что бы я делал?",
+    "Как бы я действовал, если бы знал, что в конце концов всё равно получится?",
+    "Какой совет я могу дать самому себе прямо сейчас?"
+  ],
+  en: [
+    "What would I do if I already had $100 million?",
+    "What drains my energy?",
+    "Who in my circle pulls me down and why do I tolerate it?",
+    "Who charges me with energy and why do I spend so little time with them?",
+    "What fills me with energy?",
+    "In what moments of life do I completely lose track of time?",
+    "What do I personally consider success?",
+    "If I truly didn't care about others' opinions, what would I do?",
+    "How much money do I actually need to feel free?",
+    "What does my ideal ordinary day look like?",
+    "Which belief about myself holds me back the most?",
+    "What will I regret in 10 years if I don't do it today?",
+    "What is the simplest action that moves me forward right now?",
+    "If I only had one hour a day to achieve my goal, what would I do?",
+    "How would I act if I knew it would work out in the end anyway?",
+    "What advice can I give myself right now?"
+  ]
+};
 
 const DICT = {
   ru: {
     me: "Я", health: "Здоровье", focus: "Фокус", calendar: "Календарь", ai: "ИИ", guild: "Гильдия",
-    settings: "Настройки", theme: "Тема оформления", dark: "Темная", light: "Светлая",
-    lang: "Язык интерфейса", adminBtn: "Панель Создателя (Админ)", resetBtn: "Удалить весь прогресс и начать сначала",
-    streakTitle: "Дней подряд в режиме", onePercentTitle: "Улучшения на 1% (Мотивация и микро-шаги)",
-    spheresTitle: "Баланс сфер (прокачивается автоматически от действий)",
+    nextLvl: "след. ур:",
+    settings: "Настройки", close: "Закрыть",
+    theme: "Тема оформления", dark: "Темная", light: "Светлая",
+    lang: "Язык интерфейса",
+    adminBtn: "Панель Создателя (Админ)",
+    resetBtn: "Удалить весь прогресс и начать сначала",
+    resetConfirm: "Вы точно хотите обнулить весь свой прогресс, XP, сферы и начать с чистого листа?",
+    streakTitle: "Дней подряд в режиме",
+    streakDesc: "Заходи каждый день, чтобы огонек не погас!",
+    streakBtn: "Продолжать серию!",
+    spheresTitle: "Баланс сфер биохакинга",
+    spheresSubtitle: "Шкала растет за закрытие сна, БЖУ, тренировок, планов дня и квестов.",
+    spBody: "💪 Сила и Тело (тренировки, БЖУ)",
+    spEnergy: "⚡ Энергия и Тонус (сон 7-9ч, 8 стаканов воды)",
+    spMind: "🧠 Интеллект и Фокус (16 вопросов, итоги дня)",
+    spDiscipline: "🛡️ Дисциплина (выдержка таймеров привычек)",
+    spEnv: "🤝 Окружение и Гильдия (квесты недели)",
+    spCareer: "🚀 Продуктивность и 1% улучшения",
+    onePercentTitle: "Улучшения на 1% (Мотивация и микро-шаги)",
+    bonusDone: "✅ Бонус дня получен",
+    oncePerDay15: "+15 XP (1 раз в день)",
+    onePercentPlaceholder: "В чем ты стал лучше на 1% сегодня?",
     sleep: "Сон", nutrition: "Питание и Вес", workouts: "Тренировки",
-    goalsToday: "Цели и Итоги дня", habits: "Таймеры привычек", q16: "16 Вопросов"
+    bodyParamsTitle: "Параметры тела и Индивидуальный план БЖУ",
+    weightKg: "Вес (кг)", heightCm: "Рост (см)", targetWeight: "Желаемый вес",
+    activity: "Активность", actLight: "Низкая", actMed: "3 тр/нед средние", actHard: "3 тр/нед тяжелые", actAth: "5+ тр/нед",
+    metabolism: "Метаболизм", metaSlow: "Медленный", metaNorm: "Средний", metaFast: "Быстрый",
+    myGoal: "Моя цель", goalGain: "Набор массы", goalMaint: "Поддержание", goalLose: "Похудение",
+    calcNorm: "🎯 Расчетная норма:", kcal: "ккал", pShort: "Б", cShort: "У", fShort: "Ж",
+    safeTerm1: "Безопасный срок достижения", safeTerm2: "кг без перегрузки ЖКТ:", weeks: "недель (по 0.5–0.6 кг/нед).",
+    logWeightPlaceholder: "Записать текущий вес (кг)...", addWeightBtn: "+ Вес",
+    weightChartHint: "↔️ Листай график влево-вправо (нажми на столбик, чтобы удалить ошибку)",
+    waterTitle: "Вода:", glasses: "стаканов",
+    waterDone: "✅ +20 XP за 8 стаканов сегодня получено!",
+    waterHint: "Награда +20 XP начисляется по достижении 8 стаканов (1 раз в день)",
+    addGlass: "+ Стакан",
+    foodDiaryTitle: "Дневник питания за сегодня",
+    macrosDone: "✅ Дневная норма КБЖУ закрыта (+40 XP получено!)",
+    macrosHint: "Закрой норму Калорий, Белков и Углеводов для получения +40 XP",
+    proteinsMain: "Белки", carbs: "Углеводы", fats: "Жиры",
+    mealPlaceholder: "Блюдо или продукт",
+    addMealBtn: "+ Записать прием пищи (XP по закрытию нормы)",
+    sleepTitle: "Сон (1 запись в сутки, бонус за 7–9 часов)",
+    sleepAlready: "✅ Сон за сегодня уже зафиксирован! Следующая запись завтра.",
+    sleepHoursPlaceholder: "Часов сна",
+    sleepExc: "⚡ Отлично", sleepOk: "👌 Нормально", sleepBad: "😴 Не выспался",
+    saveSleepBtn: "Зафиксировать сон за сегодня (7–9 ч = +25 XP)",
+    workoutsTitle: "Дневник тренировок и личных рекордов",
+    workoutTypePlaceholder: "Тип тренировки (Зал, Бег, Борьба, Воркаут)",
+    workoutDurPlaceholder: "Длительность (напр. 60 мин)",
+    workoutCommPlaceholder: "Комментарий / Личный рекорд (для себя, без XP)",
+    saveWorkoutBtn: "Сохранить тренировку (+0.4% к Силе тела)",
+    goalsToday: "Цели и Итоги дня", habits: "Таймеры привычек", q16: "16 Вопросов",
+    planVsReview: "План на день vs Реальный итог", oncePerDay: "1 раз в сутки",
+    planArchivedMsg: "✅ Итоги за сегодня уже подведены и сохранены в истории ниже!",
+    morningPlaceholder: "☀️ УТРО: Что я планирую сделать сегодня?",
+    eveningPlaceholder: "🌙 ВЕЧЕР: Что реально сделал по итогу дня?",
+    saveDayArchiveBtn: "Подвести итог дня и сохранить в архив (+25 XP)",
+    historyDays: "📜 История прошлых дней", wantedToDo: "Хотел сделать:", didInFact: "Сделал по итогу:",
+    habitsTitle: "Таймеры привычек и воздержания",
+    habitsSub: "Опыт начисляется автоматически за выдержку: 1 день, 2 дня, 1 неделя, 1 месяц.",
+    tagBad: "Отказ", tagGood: "Привычка", attempt: "Попытка", record: "Рекорд:", daysShort: "дн.",
+    resetHabitBtn: "Сбросить прогресс (срыв)", deleteBtn: "Удалить",
+    badHabitBtn: "🛑 Вредная (Отказ)", goodHabitBtn: "🌱 Хорошая (Внедрение)",
+    habitNamePh: "Название привычки", habitMotivPh: "Мотивация (зачем?)", startTimerBtn: "+ Запустить таймер",
+    questionNum: "Вопрос #", answerPh: "Твой ответ...",
+    schedTab: "📅 Расписание и События", notesTab: "📝 Заметки и Списки",
+    schedTitle: "Планировщик событий",
+    catWork: "💼 Дело / Работа", catHealth: "💪 Тренировка", catFocus: "🧠 Учеба / Фокус", catMeet: "🤝 Встреча",
+    eventPh: "Событие на", addBtn: "+ Добавить", noEvents: "Событий пока нет. Выбери дату и добавь задачу!",
+    notesTitle: "Заметки и списки", searchNotesPh: "🔍 Поиск по заметкам...",
+    noteTitlePh: "Заголовок заметки", noteTextPh: "Текст заметки или список покупок...", saveNoteBtn: "+ Сохранить заметку",
+    aiTitle: "Нейро-Ментор LIFE OS", aiSub: "Анализирует твой календарь, БЖУ, заметки и цели",
+    aiQuick1: "📋 Что мне сегодня сделать?", aiQuick2: "🍽️ Анализ моего БЖУ", aiQuick3: "📝 Мои заметки и фокус",
+    aiInputPh: "Напиши ИИ (спроси совет, план на день, разбор)...",
+    guildTitle: "Гильдия @life_is_rpg_game", guildSub: "Твой уровень и опыт синхронизированы",
+    channelBtn: "Канал", nickPh: "Твой ник в Гильдии", saveNickBtn: "Сохранить ник",
+    timerTitle: "До розыгрыша награды и нового квеста:", sunday10: "Каждое воскресенье в 10:00 МСК",
+    weeklyQuestBadge: "ЕЖЕНЕДЕЛЬНОЕ ЗАДАНИЕ ГИЛЬДИИ",
+    questDoneBtn: "✅ Квест недели выполнен!", questDoBtn: "⚡ Выполнить квест",
+    leaderboardTitle: "Рейтинг игроков Гильдии", questsShort: "кв.",
+    adminPanelTitle: "Панель Создателя", noRights: "Вы не обладаете необходимыми правами",
+    questEditor: "Редактор квеста Гильдии:", saveQuestBtn: "Сохранить квест недели", playersList: "Список игроков"
   },
   en: {
     me: "Me", health: "Health", focus: "Focus", calendar: "Calendar", ai: "AI Coach", guild: "Guild",
-    settings: "Settings", theme: "Appearance", dark: "Dark", light: "Light",
-    lang: "Language", adminBtn: "Creator Terminal (Admin)", resetBtn: "Reset all progress & start over",
-    streakTitle: "Day Streak", onePercentTitle: "1% Improvements (Motivation & Wins)",
-    spheresTitle: "Biohacking Spheres (grows automatically from actions)",
+    nextLvl: "next lvl:",
+    settings: "Settings", close: "Close",
+    theme: "Appearance", dark: "Dark", light: "Light",
+    lang: "Interface Language",
+    adminBtn: "Creator Panel (Admin)",
+    resetBtn: "Reset all progress & start over",
+    resetConfirm: "Are you sure you want to reset all your progress, XP, spheres and start from scratch?",
+    streakTitle: "Day Streak",
+    streakDesc: "Open the app every day to keep your streak alive!",
+    streakBtn: "Keep Going!",
+    spheresTitle: "Biohacking Spheres Balance",
+    spheresSubtitle: "Grows from completing sleep, macros, workouts, daily plans, and quests.",
+    spBody: "💪 Strength & Body (workouts, macros)",
+    spEnergy: "⚡ Energy & Tone (7-9h sleep, 8 glasses of water)",
+    spMind: "🧠 Intellect & Focus (16 questions, daily review)",
+    spDiscipline: "🛡️ Discipline (habit timer streaks)",
+    spEnv: "🤝 Environment & Guild (weekly quests)",
+    spCareer: "🚀 Productivity & 1% improvements",
+    onePercentTitle: "1% Improvements (Motivation & Micro-wins)",
+    bonusDone: "✅ Daily bonus claimed",
+    oncePerDay15: "+15 XP (once a day)",
+    onePercentPlaceholder: "How did you become 1% better today?",
     sleep: "Sleep", nutrition: "Nutrition & Weight", workouts: "Workouts",
-    goalsToday: "Daily Goals & Review", habits: "Habit Timers", q16: "16 Questions"
+    bodyParamsTitle: "Body Metrics & Custom Macro Plan",
+    weightKg: "Weight (kg)", heightCm: "Height (cm)", targetWeight: "Target Weight",
+    activity: "Activity", actLight: "Low", actMed: "3x/wk medium", actHard: "3x/wk heavy", actAth: "5+x/wk",
+    metabolism: "Metabolism", metaSlow: "Slow", metaNorm: "Normal", metaFast: "Fast",
+    myGoal: "My Goal", goalGain: "Muscle Gain", goalMaint: "Maintain", goalLose: "Fat Loss",
+    calcNorm: "🎯 Daily Target:", kcal: "kcal", pShort: "P", cShort: "C", fShort: "F",
+    safeTerm1: "Safe timeline to reach", safeTerm2: "kg without gut overload:", weeks: "weeks (0.5–0.6 kg/wk).",
+    logWeightPlaceholder: "Log current weight (kg)...", addWeightBtn: "+ Weight",
+    weightChartHint: "↔️ Scroll chart left/right (tap a bar to delete an entry)",
+    waterTitle: "Water:", glasses: "glasses",
+    waterDone: "✅ +20 XP for 8 glasses claimed today!",
+    waterHint: "+20 XP is awarded upon reaching 8 glasses (once per day)",
+    addGlass: "+ Glass",
+    foodDiaryTitle: "Today's Nutrition Log",
+    macrosDone: "✅ Daily Macro Target hit (+40 XP claimed!)",
+    macrosHint: "Hit your Calories, Protein, and Carbs target to earn +40 XP",
+    proteinsMain: "Protein", carbs: "Carbs", fats: "Fats",
+    mealPlaceholder: "Meal or food item",
+    addMealBtn: "+ Log Meal (XP awarded when daily target is met)",
+    sleepTitle: "Sleep (1 log/day, bonus for 7–9 hours)",
+    sleepAlready: "✅ Today's sleep is already logged! Next entry tomorrow.",
+    sleepHoursPlaceholder: "Hours slept",
+    sleepExc: "⚡ Excellent", sleepOk: "👌 Good", sleepBad: "😴 Tired",
+    saveSleepBtn: "Log Today's Sleep (7–9h = +25 XP)",
+    workoutsTitle: "Workout & Personal Records Log",
+    workoutTypePlaceholder: "Workout type (Gym, Run, Boxing, Calisthenics)",
+    workoutDurPlaceholder: "Duration (e.g. 60 min)",
+    workoutCommPlaceholder: "Notes / Personal Record (for yourself, no XP)",
+    saveWorkoutBtn: "Save Workout (+0.4% to Body Strength)",
+    goalsToday: "Daily Plan & Review", habits: "Habit Timers", q16: "16 Questions",
+    planVsReview: "Morning Plan vs Evening Review", oncePerDay: "Once a day",
+    planArchivedMsg: "✅ Today's review is already saved in the history below!",
+    morningPlaceholder: "☀️ MORNING: What do I plan to accomplish today?",
+    eveningPlaceholder: "🌙 EVENING: What did I actually get done today?",
+    saveDayArchiveBtn: "Complete Day & Save to Archive (+25 XP)",
+    historyDays: "📜 Past Days Archive", wantedToDo: "Planned:", didInFact: "Completed:",
+    habitsTitle: "Habit & Abstinence Timers",
+    habitsSub: "XP is granted automatically for milestones: 1 day, 2 days, 1 week, 1 month.",
+    tagBad: "Quit", tagGood: "Build", attempt: "Attempt", record: "Record:", daysShort: "d.",
+    resetHabitBtn: "Reset progress (relapse)", deleteBtn: "Delete",
+    badHabitBtn: "🛑 Bad Habit (Quit)", goodHabitBtn: "🌱 Good Habit (Build)",
+    habitNamePh: "Habit name", habitMotivPh: "Motivation (why?)", startTimerBtn: "+ Start Timer",
+    questionNum: "Question #", answerPh: "Your answer...",
+    schedTab: "📅 Schedule & Events", notesTab: "📝 Notes & Lists",
+    schedTitle: "Event Planner",
+    catWork: "💼 Work / Task", catHealth: "💪 Workout", catFocus: "🧠 Deep Focus", catMeet: "🤝 Meeting",
+    eventPh: "Event for", addBtn: "+ Add", noEvents: "No events yet. Pick a date and add a task!",
+    notesTitle: "Notes & Shopping Lists", searchNotesPh: "🔍 Search notes...",
+    noteTitlePh: "Note title", noteTextPh: "Note text or shopping list...", saveNoteBtn: "+ Save Note",
+    aiTitle: "LIFE OS AI Mentor", aiSub: "Analyzes your calendar, macros, notes, and goals",
+    aiQuick1: "📋 What should I do today?", aiQuick2: "🍽️ Analyze my macros", aiQuick3: "📝 My notes & focus",
+    aiInputPh: "Ask AI (advice, daily plan, analysis)...",
+    guildTitle: "Guild @life_is_rpg_game", guildSub: "Your level and XP are synced",
+    channelBtn: "Channel", nickPh: "Your Guild Nickname", saveNickBtn: "Save Nick",
+    timerTitle: "Time until weekly reward & new quest:", sunday10: "Every Sunday at 10:00 MSK",
+    weeklyQuestBadge: "WEEKLY GUILD QUEST",
+    questDoneBtn: "✅ Weekly Quest Completed!", questDoBtn: "⚡ Complete Quest",
+    leaderboardTitle: "Guild Leaderboard", questsShort: "q.",
+    adminPanelTitle: "Creator Panel", noRights: "You do not have sufficient permissions",
+    questEditor: "Guild Quest Editor:", saveQuestBtn: "Save Weekly Quest", playersList: "Players List"
   }
 };
 
@@ -55,7 +229,6 @@ export default function App() {
   const todayIso = new Date().toISOString().split('T')[0];
   const todayStr = new Date().toLocaleDateString('ru-RU');
 
-  // Навигация
   const [activeTab, setActiveTab] = useState('me');
   const [healthSub, setHealthSub] = useState('nutrition');
   const [focusSub, setFocusSub] = useState('goals');
@@ -64,41 +237,31 @@ export default function App() {
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [showStreakModal, setShowStreakModal] = useState(false);
 
-  // Настройки
   const [theme, setTheme] = useState('dark');
   const [lang, setLang] = useState('ru');
   const t = DICT[lang] || DICT.ru;
+  const questionsList = QUESTIONS_16_DATA[lang] || QUESTIONS_16_DATA.ru;
 
-  // Профиль и XP
   const [nickname, setNickname] = useState("Новобранец");
   const [xp, setXp] = useState(0);
   const level = Math.floor(xp / 500);
   const [syncing, setSyncing] = useState(false);
-
-  // Реестр полученных наград XP (защита от повторного накликивания!)
   const [xpClaims, setXpClaims] = useState({});
+  const [streak, setStreak] = useState({ count: 1, lastDate: "" });
 
-  // Огонек (Стрик)
-  const [streak, setStreak] = useState({ count: 1, lastDate: "", history: [] });
-
-  // 1. Вкладка "Я": Сферы жизни (растут по долям процента автоматически!) + 1% Улучшения
   const [spheres, setSpheres] = useState({
     body: 10.0, energy: 10.0, mind: 10.0, discipline: 10.0, environment: 10.0, career: 10.0
   });
   const [improvements, setImprovements] = useState([]);
   const [newImpText, setNewImpText] = useState("");
 
-  // 2. Вкладка "Здоровье": Анкета тела, Калькулятор БЖУ, График веса, Вода, Еда, Сон, Тренировки
   const [bodyProfile, setBodyProfile] = useState({
     weight: 70, height: 182, age: 22,
-    activity: "hard3", // light, med3, hard3, athlete
-    metabolism: "fast", // slow, normal, fast
-    goal: "gain", // lose, maintain, gain
-    targetWeight: 78,
-    targetWeeks: 16
+    activity: "hard3", metabolism: "fast", goal: "gain",
+    targetWeight: 78, targetWeeks: 16
   });
   const [weightLogs, setWeightLogs] = useState([
-    { date: todayStr, weight: 70 }
+    { id: 1, date: todayStr.slice(0, 5), weight: 70 }
   ]);
   const [newWeightInput, setNewWeightInput] = useState("");
 
@@ -111,7 +274,6 @@ export default function App() {
   const [mealP, setMealP] = useState("");
   const [mealF, setMealF] = useState("");
   const [mealC, setMealC] = useState("");
-  const [aiAnalyzing, setAiAnalyzing] = useState(false);
 
   const [sleepLogs, setSleepLogs] = useState([]);
   const [sleepHours, setSleepHours] = useState("8");
@@ -122,7 +284,6 @@ export default function App() {
   const [workoutDur, setWorkoutDur] = useState("");
   const [workoutComment, setWorkoutComment] = useState("");
 
-  // 3. Вкладка "Фокус": План/Итог (1 раз в день), Таймеры привычек (с попытками и рекордами), 16 вопросов
   const [dailyMorningPlan, setDailyMorningPlan] = useState("");
   const [dailyEveningReview, setDailyEveningReview] = useState("");
   const [dailyHistory, setDailyHistory] = useState([]);
@@ -139,7 +300,6 @@ export default function App() {
   const [habitMotiv, setHabitMotiv] = useState("");
   const [answers16, setAnswers16] = useState({});
 
-  // 4. Вкладка "Календарь и Заметки" (Без XP, с отображением дат)
   const [selectedDate, setSelectedDate] = useState(todayIso);
   const [events, setEvents] = useState([]);
   const [eventTime, setEventTime] = useState("12:00");
@@ -151,16 +311,16 @@ export default function App() {
   const [noteText, setNoteText] = useState("");
   const [noteSearch, setNoteSearch] = useState("");
 
-  // 5. Вкладка "ИИ" (Персональный нейро-ментор, анализирующий профиль, календарь и заметки)
   const [aiMessages, setAiMessages] = useState([
     {
       role: 'assistant',
-      text: "Привет! Я твой ИИ-ассистент. Я вижу твой режим, задачи в календаре, заметки и прогресс по БЖУ. Спроси меня, что нужно сделать сегодня, попроси совет по питанию/тренировкам или просто напиши, как проходит день!"
+      text: lang === 'en'
+        ? "Hi! I am your AI Mentor. I can analyze your schedule, macros, notes, and habits. Ask me what to focus on today!"
+        : "Привет! Я твой ИИ-ассистент. Я вижу твой режим, задачи в календаре, заметки и прогресс по БЖУ. Спроси меня, что нужно сделать сегодня!"
     }
   ]);
   const [aiInput, setAiInput] = useState("");
 
-  // 6. Вкладка "Гильдия"
   const [guildStatus, setGuildStatus] = useState({ is_subscribed: false, bot_activated: true });
   const [activeQuest, setActiveQuest] = useState({
     title: "КВЕСТ НЕДЕЛИ",
@@ -175,16 +335,14 @@ export default function App() {
   const [newNickInput, setNewNickInput] = useState("");
   const [timeLeft, setTimeLeft] = useState({ d: 0, h: 0, m: 0, s: 0 });
 
-  // -------------------- РАСЧЕТ ДНЕВНОЙ НОРМЫ КБЖУ И ПЛАНА ВЕСА --------------------
+  // Расчет нормы КБЖУ
   const calculateNutritionPlan = () => {
     const w = Number(bodyProfile.weight) || 70;
     const h = Number(bodyProfile.height) || 180;
     const a = Number(bodyProfile.age) || 22;
-
-    // Базовый обмен Миффлина - Сан-Жеора
     const bmr = 10 * w + 6.25 * h - 5 * a + 5;
     const actMap = { light: 1.35, med3: 1.5, hard3: 1.65, athlete: 1.85 };
-    const metaMap = { slow: 0.92, normal: 1.0, fast: 1.12 };
+    const metaMap = { slow: 0.92, normal: 0.99, fast: 1.12 };
 
     let tdee = bmr * (actMap[bodyProfile.activity] || 1.55) * (metaMap[bodyProfile.metabolism] || 1.0);
     if (bodyProfile.goal === 'gain') tdee += 380;
@@ -196,11 +354,8 @@ export default function App() {
     const targetC = Math.max(100, Math.round((targetKcal - targetP * 4 - targetF * 9) / 4));
 
     const weightDiff = Math.abs((Number(bodyProfile.targetWeight) || w) - w);
-    const weeks = Math.max(1, Number(bodyProfile.targetWeeks) || 12);
-    const kgPerWeek = +(weightDiff / weeks).toFixed(2);
-    const safeWeeks = Math.max(1, Math.ceil(weightDiff / 0.6)); // 0.5-0.6 кг в неделю безопасно для ЖКТ и гормонов
-
-    return { targetKcal, targetP, targetF, targetC, kgPerWeek, safeWeeks };
+    const safeWeeks = Math.max(1, Math.ceil(weightDiff / 0.55));
+    return { targetKcal, targetP, targetF, targetC, safeWeeks };
   };
 
   const macroPlan = calculateNutritionPlan();
@@ -210,13 +365,11 @@ export default function App() {
   const totalFat = todayMeals.reduce((acc, m) => acc + (Number(m.f) || 0), 0);
   const totalCarbs = todayMeals.reduce((acc, m) => acc + (Number(m.c) || 0), 0);
 
-  // Проверка закрытия нормы БЖУ (Главное: Калории, Белки и Углеводы >= 95% от нормы)
   const isMacrosCompleted =
     totalCalories >= macroPlan.targetKcal * 0.95 &&
     totalProtein >= macroPlan.targetP * 0.95 &&
     totalCarbs >= macroPlan.targetC * 0.95;
 
-  // -------------------- СИНХРОНИЗАЦИЯ И ОДНОРАЗОВОЕ НАЧИСЛЕНИЕ XP --------------------
   const getFullAppState = (overrides = {}) => ({
     theme, lang, streak, xpClaims, spheres, improvements,
     bodyProfile, weightLogs, waterByDate, meals, sleepLogs, workouts,
@@ -227,14 +380,13 @@ export default function App() {
   const syncToCloud = (nextXp = xp, stateOverrides = {}) => {
     setSyncing(true);
     const fullState = getFullAppState(stateOverrides);
-    localStorage.setItem(`lifeos_v3_${userId}`, JSON.stringify({
+    localStorage.setItem(`lifeos_v4_${userId}`, JSON.stringify({
       nickname, xp: nextXp, weeklyDone, app_state: fullState
     }));
 
-    // Мгновенно обновляем свой уровень в локальном списке Гильдии!
     const nextLvl = Math.floor(nextXp / 500);
     setLeaderboard(prev => prev.map(u =>
-      u.telegram_id === userId ? { ...u, xp: nextXp, level: Math.max(u.level || 0, nextLvl) } : u
+      u.telegram_id === userId ? { ...u, xp: nextXp, level: nextLvl } : u
     ));
 
     fetch(`${API_BASE}/api/sync/${userId}`, {
@@ -250,7 +402,6 @@ export default function App() {
       .finally(() => setSyncing(false));
   };
 
-  // Начисляет XP и доли % к сферам СТРОГО 1 РАЗ по уникальному ключу claimKey
   const grantRewardOnce = (claimKey, xpAmount, sphereDeltas = {}, extraState = {}) => {
     if (xpClaims[claimKey]) {
       syncToCloud(xp, extraState);
@@ -259,7 +410,7 @@ export default function App() {
     const nextClaims = { ...xpClaims, [claimKey]: true };
     const nextSpheres = { ...spheres };
     Object.keys(sphereDeltas).forEach(k => {
-      nextSpheres[k] = Math.min(100, +( (nextSpheres[k] || 10) + sphereDeltas[k] ).toFixed(2));
+      nextSpheres[k] = Math.min(100, +((nextSpheres[k] || 10) + sphereDeltas[k]).toFixed(2));
     });
     const nextXp = xp + xpAmount;
 
@@ -271,53 +422,12 @@ export default function App() {
     return true;
   };
 
-  // Автоматическая проверка закрытия БЖУ за сегодня
   useEffect(() => {
     if (isMacrosCompleted && !xpClaims[`macros_${todayIso}`]) {
       grantRewardOnce(`macros_${todayIso}`, 40, { energy: 0.4, body: 0.3 });
     }
   }, [totalCalories, totalProtein, totalCarbs]);
 
-  // Автоматическая проверка рубежей привычек (1, 2, 7, 30 дней)
-  useEffect(() => {
-    let xpEarned = 0;
-    let changed = false;
-    const milestones = [
-      { days: 1, xp: 15 },
-      { days: 2, xp: 25 },
-      { days: 7, xp: 70 },
-      { days: 30, xp: 250 }
-    ];
-    const updatedHabits = habits.map(h => {
-      const elapsedDays = Math.floor((Date.now() - h.start) / 86400000);
-      const claimed = h.claimedMilestones || [];
-      let newClaimed = [...claimed];
-      milestones.forEach(m => {
-        if (elapsedDays >= m.days && !newClaimed.includes(m.days)) {
-          newClaimed.push(m.days);
-          xpEarned += m.xp;
-          changed = true;
-        }
-      });
-      const maxRec = Math.max(h.maxRecordDays || 0, elapsedDays);
-      if (maxRec !== h.maxRecordDays) changed = true;
-      return { ...h, claimedMilestones: newClaimed, maxRecordDays: maxRec };
-    });
-
-    if (changed) {
-      setHabits(updatedHabits);
-      const nextXp = xp + xpEarned;
-      const nextSpheres = {
-        ...spheres,
-        discipline: Math.min(100, +(spheres.discipline + (xpEarned > 0 ? 0.4 : 0)).toFixed(2))
-      };
-      if (xpEarned > 0) setXp(nextXp);
-      setSpheres(nextSpheres);
-      syncToCloud(nextXp, { habits: updatedHabits, spheres: nextSpheres });
-    }
-  }, [activeTab]);
-
-  // Загрузка данных при входе (защита от потери прогресса)
   useEffect(() => {
     tg?.ready();
     tg?.expand();
@@ -344,22 +454,14 @@ export default function App() {
       if (st.notes) setNotes(st.notes);
     };
 
-    let localXp = 0;
-    let localState = null;
-    const saved = localStorage.getItem(`lifeos_v3_${userId}`);
+    const saved = localStorage.getItem(`lifeos_v4_${userId}`);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         if (parsed.nickname) setNickname(parsed.nickname);
-        if (parsed.xp !== undefined) {
-          localXp = Number(parsed.xp) || 0;
-          setXp(localXp);
-        }
+        if (parsed.xp !== undefined) setXp(Number(parsed.xp) || 0);
         if (parsed.weeklyDone !== undefined) setWeeklyDone(parsed.weeklyDone);
-        if (parsed.app_state) {
-          localState = parsed.app_state;
-          applyState(localState);
-        }
+        if (parsed.app_state) applyState(parsed.app_state);
       } catch (e) {}
     }
 
@@ -369,20 +471,12 @@ export default function App() {
         if (data.user) {
           setNickname(data.user.nickname || "Новобранец");
           setNewNickInput(data.user.nickname || "");
+          // Берем актуальный серверный XP (так как админ мог понизить уровень на сервере!)
           const serverXp = Number(data.user.xp) || 0;
-          const bestXp = Math.max(localXp, serverXp);
-          setXp(bestXp);
-
+          setXp(serverXp);
           const serverState = data.user.app_state || {};
-          if (Object.keys(serverState).length > 0 && serverXp >= localXp) {
+          if (Object.keys(serverState).length > 0) {
             applyState(serverState);
-          } else if (localXp > serverXp && localState) {
-            // Если локальный прогресс выше серверного — пушим его на сервер!
-            fetch(`${API_BASE}/api/sync/${userId}`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ action: "save_state", xp: bestXp, app_state: localState })
-            });
           }
         }
         if (data.quest_stat) setWeeklyDone(Boolean(data.quest_stat.weekly_done));
@@ -393,7 +487,6 @@ export default function App() {
       .catch(() => {});
   }, [userId]);
 
-  // Таймер воскресенья 10:00 МСК
   useEffect(() => {
     const timer = setInterval(() => {
       const now = new Date();
@@ -415,43 +508,43 @@ export default function App() {
     return () => clearInterval(timer);
   }, []);
 
-  // Генератор умного ответа ИИ на основе данных пользователя
   const handleSendAiMessage = (customPrompt) => {
     const text = (customPrompt || aiInput).trim();
     if (!text) return;
     const userMsg = { role: 'user', text };
-    const todayEvents = events.filter(e => e.date === todayIso);
-    const pendingEvents = todayEvents.filter(e => !e.done);
+    const todayEvents = events.filter(e => e.date === todayIso && !e.done);
 
     let reply = "";
     const low = text.toLowerCase();
 
-    if (low.includes("сегодня") || low.includes("сделать") || low.includes("план") || low.includes("задач")) {
-      const tasksStr = pendingEvents.length > 0
-        ? pendingEvents.map(e => `• ${e.time} (${e.date}) — ${e.title}`).join("\n")
+    if (lang === 'en') {
+      const tasksStr = todayEvents.length > 0
+        ? todayEvents.map(e => `• ${e.time} (${e.date}) — ${e.title}`).join("\n")
+        : "All calendar tasks for today are done (or none scheduled yet).";
+      reply =
+        `📋 Today's Summary (${todayStr}):\n${tasksStr}\n\n` +
+        `💧 Water: ${waterGlasses}/8 glasses.\n` +
+        `🍽️ Macros: ${totalCalories}/${macroPlan.targetKcal} kcal (P: ${totalProtein}/${macroPlan.targetP}g, C: ${totalCarbs}/${macroPlan.targetC}g).\n` +
+        `💡 Keep pushing your 1% improvements!`;
+    } else if (low.includes("сегодня") || low.includes("сделать") || low.includes("план")) {
+      const tasksStr = todayEvents.length > 0
+        ? todayEvents.map(e => `• ${e.time} (${e.date}) — ${e.title}`).join("\n")
         : "В календаре на сегодня все задачи закрыты (или еще не добавлены).";
       reply =
         `📋 Сводка твоих задач на сегодня (${todayStr}):\n\n` +
         `${tasksStr}\n\n` +
         `💧 Вода: ${waterGlasses}/8 стаканов.\n` +
-        `🍽️ БЖУ: ${totalCalories}/${macroPlan.targetKcal} ккал (Белки: ${totalProtein}/${macroPlan.targetP}г, Углеводы: ${totalCarbs}/${macroPlan.targetC}г).\n` +
-        `${dailyMorningPlan ? `🎯 Главный фокус утра: «${dailyMorningPlan}»` : "💡 Совет: заполни утренний план во вкладке «Фокус»!"}`;
-    } else if (low.includes("питани") || low.includes("калор") || low.includes("вес") || low.includes("бжу")) {
+        `🍽️ БЖУ: ${totalCalories}/${macroPlan.targetKcal} ккал (Белки: ${totalProtein}/${macroPlan.targetP}г, Углеводы: ${totalCarbs}/${macroPlan.targetC}г).`;
+    } else if (low.includes("бжу") || low.includes("питани") || low.includes("вес")) {
       reply =
-        `⚖️ Твой текущий вес: ${bodyProfile.weight} кг (цель: ${bodyProfile.targetWeight} кг за ${bodyProfile.targetWeeks} нед.).\n` +
-        `Для цели (${bodyProfile.goal === 'gain' ? 'Набор массы' : bodyProfile.goal === 'lose' ? 'Рельеф/Сушка' : 'Поддержание'}) без перегрузки ЖКТ твоя норма:\n` +
-        `• Калории: ${macroPlan.targetKcal} ккал\n• Белки: ${macroPlan.targetP} г\n• Углеводы: ${macroPlan.targetC} г\n• Жиры: ${macroPlan.targetF} г\n\n` +
-        `Сегодня осталось добрать: ${Math.max(0, macroPlan.targetKcal - totalCalories)} ккал и ${Math.max(0, macroPlan.targetP - totalProtein)} г белка.`;
-    } else if (low.includes("заметк") || low.includes("купить")) {
+        `⚖️ Текущий вес: ${bodyProfile.weight} кг (цель: ${bodyProfile.targetWeight} кг).\n` +
+        `Твоя дневная норма: ${macroPlan.targetKcal} ккал | Белки: ${macroPlan.targetP}г | Углеводы: ${macroPlan.targetC}г | Жиры: ${macroPlan.targetF}г.\n` +
+        `Осталось добрать сегодня: ${Math.max(0, macroPlan.targetKcal - totalCalories)} ккал и ${Math.max(0, macroPlan.targetP - totalProtein)}г белка.`;
+    } else {
       const notesList = notes.slice(0, 3).map(n => `📌 ${n.title}: ${n.text}`).join("\n");
       reply = notes.length > 0
-        ? `Вот твои актуальные заметки:\n\n${notesList}`
-        : "У тебя пока нет сохраненных заметок во вкладке «Календарь -> Заметки».";
-    } else {
-      reply =
-        `Я проанализировал твой профиль (${nickname}, LVL ${level}):\n` +
-        `• Твоя самая прокачанная сфера сейчас — ${Object.entries(spheres).sort((a,b)=>b[1]-a[1])[0][0]} (${Object.entries(spheres).sort((a,b)=>b[1]-a[1])[0][1]}%).\n` +
-        `• Чтобы ускорить прогресс сегодня: выпей норму из 8 стаканов воды, закрой норму белка (${macroPlan.targetP}г) и зафиксируй 1% улучшение на главной вкладке. Ты на верном пути!`;
+        ? `Твои актуальные заметки и фокус:\n\n${notesList}`
+        : `Профиль ${nickname} (LVL ${level}): выпей 8 стаканов воды, закрой норму белка (${macroPlan.targetP}г) и запиши 1% улучшение!`;
     }
 
     setAiMessages(prev => [...prev, userMsg, { role: 'assistant', text: reply }]);
@@ -463,7 +556,7 @@ export default function App() {
     const d = Math.floor(sec / 86400);
     const h = Math.floor((sec % 86400) / 3600);
     const m = Math.floor((sec % 3600) / 60);
-    return `${d}д ${h}ч ${m}м`;
+    return lang === 'en' ? `${d}d ${h}h ${m}m` : `${d}д ${h}ч ${m}м`;
   };
 
   const isLight = theme === 'light';
@@ -492,7 +585,7 @@ export default function App() {
             <div className="w-28 h-1.5 bg-slate-700/40 rounded-full overflow-hidden mt-1">
               <div className="h-full bg-emerald-500 transition-all" style={{ width: `${(xp % 500) / 5}%` }} />
             </div>
-            <div className="text-[10px] text-slate-400 mt-0.5">{xp} XP (след. ур: {500 - (xp % 500)} XP)</div>
+            <div className="text-[10px] text-slate-400 mt-0.5">{xp} XP ({t.nextLvl} {500 - (xp % 500)} XP)</div>
           </div>
         </div>
 
@@ -512,6 +605,25 @@ export default function App() {
           </button>
         </div>
       </header>
+
+      {/* МОДАЛКА ОГОНЬКА */}
+      {showStreakModal && (
+        <div className="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4">
+          <div className={`w-full max-w-sm rounded-2xl p-5 border ${bgCard} space-y-4 text-center`}>
+            <div className="w-16 h-16 rounded-full bg-orange-500/20 border border-orange-500/40 flex items-center justify-center mx-auto">
+              <Flame className="w-10 h-10 fill-orange-500 text-orange-500" />
+            </div>
+            <h3 className="text-xl font-black">{streak.count || 1} {t.streakTitle}!</h3>
+            <p className="text-xs text-slate-400">{t.streakDesc}</p>
+            <button
+              onClick={() => setShowStreakModal(false)}
+              className="w-full py-2.5 rounded-xl bg-orange-500 text-black font-bold text-xs"
+            >
+              {t.streakBtn}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* МОДАЛКА НАСТРОЕК */}
       {showSettings && (
@@ -564,8 +676,8 @@ export default function App() {
             <div className="pt-2 border-t border-slate-700/50">
               <button
                 onClick={() => {
-                  if (window.confirm("Вы точно хотите обнулить весь свой прогресс, XP, сферы и начать с чистого листа?")) {
-                    localStorage.removeItem(`lifeos_v3_${userId}`);
+                  if (window.confirm(t.resetConfirm)) {
+                    localStorage.removeItem(`lifeos_v4_${userId}`);
                     setXp(0);
                     setXpClaims({});
                     setSpheres({ body: 10, energy: 10, mind: 10, discipline: 10, environment: 10, career: 10 });
@@ -586,26 +698,26 @@ export default function App() {
         </div>
       )}
 
-      {/* МОДАЛКА АДМИНА */}
+      {/* МОДАЛКА АДМИНА (ПОЗВОЛЯЕТ И ПОВЫШАТЬ, И ПОНИЖАТЬ УРОВЕНЬ ВПЛОТЬ ДО 0!) */}
       {showAdminModal && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
           <div className={`w-full max-w-lg rounded-2xl p-5 border ${bgCard} space-y-4 max-h-[90vh] overflow-y-auto`}>
             <div className="flex justify-between items-center border-b border-slate-700 pb-3">
               <h3 className="font-bold text-amber-400 flex items-center gap-2 text-sm">
-                <Crown className="w-4 h-4" /> Панель Создателя
+                <Crown className="w-4 h-4" /> {t.adminPanelTitle}
               </h3>
-              <button onClick={() => setShowAdminModal(false)} className="text-xs px-2 py-1 rounded bg-slate-800 text-slate-300">Закрыть</button>
+              <button onClick={() => setShowAdminModal(false)} className="text-xs px-2 py-1 rounded bg-slate-800 text-slate-300">{t.close}</button>
             </div>
 
             {userId !== ADMIN_ID ? (
               <div className="p-6 text-center space-y-2">
                 <Lock className="w-10 h-10 text-rose-500 mx-auto" />
-                <div className="font-bold text-sm">Вы не обладаете необходимыми правами</div>
+                <div className="font-bold text-sm">{t.noRights}</div>
               </div>
             ) : (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <div className="text-xs font-bold text-slate-400">Редактор квеста Гильдии:</div>
+                  <div className="text-xs font-bold text-slate-400">{t.questEditor}</div>
                   <input
                     type="text"
                     value={activeQuest.title}
@@ -624,16 +736,16 @@ export default function App() {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ action: "admin_update", active_quest: activeQuest })
-                      }).then(() => alert("Квест обновлен!"));
+                      }).then(() => alert("OK!"));
                     }}
                     className="w-full py-2.5 bg-amber-500 text-black font-bold rounded-xl text-xs"
                   >
-                    Сохранить квест недели
+                    {t.saveQuestBtn}
                   </button>
                 </div>
 
                 <div className="space-y-2 pt-3 border-t border-slate-800">
-                  <div className="text-xs font-bold text-slate-300">Список игроков ({leaderboard.length}):</div>
+                  <div className="text-xs font-bold text-slate-300">{t.playersList} ({leaderboard.length}):</div>
                   <div className="space-y-2 max-h-64 overflow-y-auto">
                     {leaderboard.map((u, i) => (
                       <div key={u.telegram_id} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between text-xs">
@@ -645,9 +757,20 @@ export default function App() {
                         </div>
                         <button
                           onClick={() => {
-                            const newLvl = prompt(`Уровень для ${u.nickname}:`, u.level);
-                            if (newLvl !== null) {
-                              const lvlNum = parseInt(newLvl) || 0;
+                            const newLvlStr = prompt(`Укажите уровень (0 или выше) для ${u.nickname}:`, u.level);
+                            if (newLvlStr !== null) {
+                              const lvlNum = Math.max(0, parseInt(newLvlStr, 10) || 0);
+                              const newXpVal = lvlNum * 500;
+                              // Если админ меняет уровень самому себе — сразу обновляем шапку и локальный кэш!
+                              if (u.telegram_id === userId) {
+                                setXp(newXpVal);
+                                localStorage.setItem(`lifeos_v4_${userId}`, JSON.stringify({
+                                  nickname, xp: newXpVal, weeklyDone, app_state: getFullAppState()
+                                }));
+                              }
+                              setLeaderboard(prev => prev.map(x =>
+                                x.telegram_id === u.telegram_id ? { ...x, level: lvlNum, xp: newXpVal } : x
+                              ));
                               fetch(`${API_BASE}/api/sync/${userId}`, {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
@@ -676,21 +799,18 @@ export default function App() {
         {/* ==================== 1. ВКЛАДКА "Я" ==================== */}
         {activeTab === 'me' && (
           <div className="space-y-4">
-            {/* Сферы биохакинга (ТОЛЬКО АВТОМАТИЧЕСКИЙ РОСТ ПО ДОЛЯМ ПРОЦЕНТА!) */}
             <div className={`p-4 rounded-2xl border ${bgCard} space-y-3`}>
               <div>
                 <h3 className="text-sm font-bold">{t.spheresTitle}</h3>
-                <p className="text-[11px] text-slate-400">
-                  Шкалы нельзя крутить вручную — они растут на +0.1% ... +0.5% за закрытие сна, БЖУ, тренировок, планов дня и квестов.
-                </p>
+                <p className="text-[11px] text-slate-400">{t.spheresSubtitle}</p>
               </div>
               {[
-                { key: 'body', label: '💪 Сила и Тело (тренировки, БЖУ)', color: 'bg-rose-500' },
-                { key: 'energy', label: '⚡ Энергия и Тонус (сон 7-9ч, 8 стаканов воды)', color: 'bg-amber-500' },
-                { key: 'mind', label: '🧠 Интеллект и Фокус (16 вопросов, итоги дня)', color: 'bg-purple-500' },
-                { key: 'discipline', label: '🛡️ Дисциплина (выдержка таймеров привычек)', color: 'bg-emerald-500' },
-                { key: 'environment', label: '🤝 Окружение и Гильдия (квесты недели)', color: 'bg-cyan-500' },
-                { key: 'career', label: '🚀 Продуктивность и 1% улучшения', color: 'bg-blue-500' }
+                { key: 'body', label: t.spBody, color: 'bg-rose-500' },
+                { key: 'energy', label: t.spEnergy, color: 'bg-amber-500' },
+                { key: 'mind', label: t.spMind, color: 'bg-purple-500' },
+                { key: 'discipline', label: t.spDiscipline, color: 'bg-emerald-500' },
+                { key: 'environment', label: t.spEnv, color: 'bg-cyan-500' },
+                { key: 'career', label: t.spCareer, color: 'bg-blue-500' }
               ].map(s => {
                 const val = Number(spheres[s.key] || 10).toFixed(1);
                 return (
@@ -707,20 +827,19 @@ export default function App() {
               })}
             </div>
 
-            {/* 1% Улучшения (XP дается максимум 1 раз в день!) */}
             <div className={`p-4 rounded-2xl border ${bgCard} space-y-3`}>
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-bold flex items-center gap-2 text-emerald-400">
                   <Sparkles className="w-4 h-4" /> {t.onePercentTitle}
                 </h2>
                 <span className="text-[10px] bg-emerald-500/15 text-emerald-400 px-2 py-0.5 rounded font-bold">
-                  {xpClaims[`imp_${todayIso}`] ? "✅ Бонус дня получен" : "+15 XP (1 раз в день)"}
+                  {xpClaims[`imp_${todayIso}`] ? t.bonusDone : t.oncePerDay15}
                 </span>
               </div>
               <div className="flex gap-2">
                 <input
                   type="text"
-                  placeholder="В чем ты стал лучше на 1% сегодня?"
+                  placeholder={t.onePercentPlaceholder}
                   value={newImpText}
                   onChange={e => setNewImpText(e.target.value)}
                   className={`flex-1 p-2.5 rounded-xl border text-xs ${bgInput}`}
@@ -779,79 +898,79 @@ export default function App() {
 
             {healthSub === 'nutrition' && (
               <div className="space-y-4">
-                {/* Параметры тела и ИИ-план БЖУ и веса */}
                 <div className={`p-4 rounded-2xl border ${bgCard} space-y-3`}>
                   <h3 className="text-sm font-bold flex items-center gap-2 text-emerald-400">
-                    <Scale className="w-4 h-4" /> Параметры тела и Индивидуальный план БЖУ
+                    <Scale className="w-4 h-4" /> {t.bodyParamsTitle}
                   </h3>
                   <div className="grid grid-cols-3 gap-2 text-xs">
                     <div>
-                      <label className="text-[10px] text-slate-400">Вес (кг)</label>
+                      <label className="text-[10px] text-slate-400">{t.weightKg}</label>
                       <input type="number" value={bodyProfile.weight} onChange={e => setBodyProfile({ ...bodyProfile, weight: e.target.value })} onBlur={() => syncToCloud(xp, { bodyProfile })} className={`w-full p-2 rounded-lg border ${bgInput}`} />
                     </div>
                     <div>
-                      <label className="text-[10px] text-slate-400">Рост (см)</label>
+                      <label className="text-[10px] text-slate-400">{t.heightCm}</label>
                       <input type="number" value={bodyProfile.height} onChange={e => setBodyProfile({ ...bodyProfile, height: e.target.value })} onBlur={() => syncToCloud(xp, { bodyProfile })} className={`w-full p-2 rounded-lg border ${bgInput}`} />
                     </div>
                     <div>
-                      <label className="text-[10px] text-slate-400">Желаемый вес</label>
+                      <label className="text-[10px] text-slate-400">{t.targetWeight}</label>
                       <input type="number" value={bodyProfile.targetWeight} onChange={e => setBodyProfile({ ...bodyProfile, targetWeight: e.target.value })} onBlur={() => syncToCloud(xp, { bodyProfile })} className={`w-full p-2 rounded-lg border ${bgInput}`} />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 text-xs">
                     <div>
-                      <label className="text-[10px] text-slate-400">Активность</label>
+                      <label className="text-[10px] text-slate-400">{t.activity}</label>
                       <select value={bodyProfile.activity} onChange={e => { const next = { ...bodyProfile, activity: e.target.value }; setBodyProfile(next); syncToCloud(xp, { bodyProfile: next }); }} className={`w-full p-2 rounded-lg border ${bgInput}`}>
-                        <option value="light">Низкая</option>
-                        <option value="med3">3 тр/нед средние</option>
-                        <option value="hard3">3 тр/нед тяжелые</option>
-                        <option value="athlete">5+ тр/нед</option>
+                        <option value="light">{t.actLight}</option>
+                        <option value="med3">{t.actMed}</option>
+                        <option value="hard3">{t.actHard}</option>
+                        <option value="athlete">{t.actAth}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="text-[10px] text-slate-400">Метаболизм</label>
+                      <label className="text-[10px] text-slate-400">{t.metabolism}</label>
                       <select value={bodyProfile.metabolism} onChange={e => { const next = { ...bodyProfile, metabolism: e.target.value }; setBodyProfile(next); syncToCloud(xp, { bodyProfile: next }); }} className={`w-full p-2 rounded-lg border ${bgInput}`}>
-                        <option value="slow">Медленный</option>
-                        <option value="normal">Средний</option>
-                        <option value="fast">Быстрый</option>
+                        <option value="slow">{t.metaSlow}</option>
+                        <option value="normal">{t.metaNorm}</option>
+                        <option value="fast">{t.metaFast}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="text-[10px] text-slate-400">Моя цель</label>
+                      <label className="text-[10px] text-slate-400">{t.myGoal}</label>
                       <select value={bodyProfile.goal} onChange={e => { const next = { ...bodyProfile, goal: e.target.value }; setBodyProfile(next); syncToCloud(xp, { bodyProfile: next }); }} className={`w-full p-2 rounded-lg border ${bgInput}`}>
-                        <option value="gain">Набор массы</option>
-                        <option value="maintain">Поддержание</option>
-                        <option value="lose">Похудение</option>
+                        <option value="gain">{t.goalGain}</option>
+                        <option value="maintain">{t.goalMaint}</option>
+                        <option value="lose">{t.goalLose}</option>
                       </select>
                     </div>
                   </div>
 
                   <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-xs space-y-1">
                     <div className="font-bold text-emerald-400">
-                      🎯 Расчетная норма: {macroPlan.targetKcal} ккал | Б: {macroPlan.targetP}г | У: {macroPlan.targetC}г | Ж: {macroPlan.targetF}г
+                      {t.calcNorm} {macroPlan.targetKcal} {t.kcal} | {t.pShort}: {macroPlan.targetP}g | {t.cShort}: {macroPlan.targetC}g | {t.fShort}: {macroPlan.targetF}g
                     </div>
                     <div className="text-[11px] text-slate-300">
-                      Безопасный срок достижения {bodyProfile.targetWeight} кг без перегрузки ЖКТ: <b>~{macroPlan.safeWeeks} недель</b> (по 0.5–0.6 кг/нед).
+                      {t.safeTerm1} {bodyProfile.targetWeight} {t.safeTerm2} <b>~{macroPlan.safeWeeks} {t.weeks}</b>
                     </div>
                   </div>
 
-                  {/* Взвешивание и График веса */}
+                  {/* Взвешивание и прокручиваемый влево-вправо график веса с самого начала! */}
                   <div className="pt-2 border-t border-slate-800 space-y-2">
                     <div className="flex gap-2">
                       <input
                         type="number"
                         step="0.1"
-                        placeholder="Записать текущий вес (кг)..."
+                        placeholder={t.logWeightPlaceholder}
                         value={newWeightInput}
                         onChange={e => setNewWeightInput(e.target.value)}
                         className={`flex-1 p-2 rounded-lg border text-xs ${bgInput}`}
                       />
                       <button
                         onClick={() => {
-                          if (!newWeightInput) return;
                           const wVal = Number(newWeightInput);
-                          const nextLogs = [...weightLogs.slice(-9), { date: todayStr.slice(0, 5), weight: wVal }];
+                          if (!wVal || wVal <= 20) return;
+                          // Сохраняем ВСЮ историю взвешиваний с самого начала (без обрезки!)
+                          const nextLogs = [...weightLogs, { id: Date.now(), date: todayStr.slice(0, 5), weight: wVal }];
                           const nextProf = { ...bodyProfile, weight: wVal };
                           setWeightLogs(nextLogs);
                           setBodyProfile(nextProf);
@@ -860,37 +979,49 @@ export default function App() {
                         }}
                         className="px-3 rounded-lg bg-emerald-500 text-black font-bold text-xs"
                       >
-                        + Вес
+                        {t.addWeightBtn}
                       </button>
                     </div>
-                    {/* Визуальный график веса */}
-                    <div className="flex items-end gap-2 h-20 pt-4 px-2 bg-slate-900/50 rounded-xl border border-slate-800">
-                      {weightLogs.map((wl, i) => {
-                        const minW = Math.min(...weightLogs.map(x => x.weight)) - 2;
-                        const maxW = Math.max(...weightLogs.map(x => x.weight)) + 2;
-                        const pct = Math.max(15, Math.min(100, ((wl.weight - minW) / (maxW - minW || 1)) * 100));
-                        return (
-                          <div key={i} className="flex-1 flex flex-col items-center">
-                            <span className="text-[9px] text-emerald-400 font-bold mb-0.5">{wl.weight}</span>
-                            <div className="w-full max-w-[20px] bg-emerald-500/70 rounded-t" style={{ height: `${pct * 0.45}px` }} />
-                            <span className="text-[8px] text-slate-500 mt-0.5">{wl.date}</span>
-                          </div>
-                        );
-                      })}
+
+                    <div className="text-[10px] text-slate-400">{t.weightChartHint}</div>
+                    <div className="overflow-x-auto pb-2 pt-3 px-2 bg-slate-900/50 rounded-xl border border-slate-800">
+                      <div className="flex items-end gap-3 min-w-max h-24">
+                        {weightLogs.map((wl, i) => {
+                          const validWeights = weightLogs.map(x => Number(x.weight) || 70);
+                          const minW = Math.min(...validWeights) - 2;
+                          const maxW = Math.max(...validWeights) + 2;
+                          const pct = Math.max(18, Math.min(100, (((Number(wl.weight) || 70) - minW) / (maxW - minW || 1)) * 100));
+                          return (
+                            <div
+                              key={wl.id || i}
+                              onClick={() => {
+                                if (weightLogs.length > 1 && window.confirm(`Удалить запись веса ${wl.weight} кг от ${wl.date}?`)) {
+                                  const nextLogs = weightLogs.filter((_, idx) => idx !== i);
+                                  setWeightLogs(nextLogs);
+                                  syncToCloud(xp, { weightLogs: nextLogs });
+                                }
+                              }}
+                              className="w-9 shrink-0 flex flex-col items-center cursor-pointer"
+                            >
+                              <span className="text-[10px] text-emerald-400 font-bold mb-1">{wl.weight}</span>
+                              <div className="w-6 bg-emerald-500/80 rounded-t transition-all hover:bg-rose-400" style={{ height: `${pct * 0.55}px` }} />
+                              <span className="text-[9px] text-slate-400 mt-1">{wl.date}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Водный баланс (XP только при достижении 8 стаканов 1 раз в день!) */}
+                {/* Вода */}
                 <div className={`p-4 rounded-2xl border ${bgCard} flex items-center justify-between`}>
                   <div>
                     <div className="text-sm font-bold flex items-center gap-1.5 text-cyan-400">
-                      <Droplets className="w-4 h-4" /> Вода: {waterGlasses} / 8 стаканов
+                      <Droplets className="w-4 h-4" /> {t.waterTitle} {waterGlasses} / 8 {t.glasses}
                     </div>
                     <div className="text-[11px] text-slate-400">
-                      {xpClaims[`water_${todayIso}`]
-                        ? "✅ +20 XP за 8 стаканов сегодня получено!"
-                        : "Награда +20 XP начисляется только по достижении 8 стаканов (1 раз в день)"}
+                      {xpClaims[`water_${todayIso}`] ? t.waterDone : t.waterHint}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -915,49 +1046,45 @@ export default function App() {
                         }
                       }}
                       className="px-3 py-1.5 rounded-lg bg-cyan-500 text-black font-bold text-xs"
-                    >+ Стакан</button>
+                    >{t.addGlass}</button>
                   </div>
                 </div>
 
-                {/* Счетчик БЖУ (XP дается ТОЛЬКО когда закрыта дневная норма по Калориям, Белкам и Углеводам!) */}
+                {/* Дневник питания */}
                 <div className={`p-4 rounded-2xl border ${bgCard} space-y-3`}>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="text-sm font-bold">Дневник питания за сегодня</h3>
-                      <div className="text-[10px] text-slate-400">
-                        {xpClaims[`macros_${todayIso}`]
-                          ? "✅ Дневная норма КБЖУ закрыта (+40 XP получено!)"
-                          : "Закрой норму Калорий, Белков и Углеводов для получения +40 XP"}
-                      </div>
+                  <div>
+                    <h3 className="text-sm font-bold">{t.foodDiaryTitle}</h3>
+                    <div className="text-[10px] text-slate-400">
+                      {xpClaims[`macros_${todayIso}`] ? t.macrosDone : t.macrosHint}
                     </div>
                   </div>
 
                   <div className="grid grid-cols-4 gap-2 text-center">
                     <div className="p-2 rounded-xl bg-slate-900/60 border border-slate-800">
-                      <div className="text-[10px] text-slate-400">Ккал</div>
+                      <div className="text-[10px] text-slate-400">{t.kcal}</div>
                       <div className="text-xs font-black text-emerald-400">{totalCalories} / {macroPlan.targetKcal}</div>
                     </div>
                     <div className="p-2 rounded-xl bg-slate-900/60 border border-slate-800">
-                      <div className="text-[10px] text-slate-400">Белки (главное)</div>
-                      <div className="text-xs font-bold text-blue-400">{totalProtein} / {macroPlan.targetP}г</div>
+                      <div className="text-[10px] text-slate-400">{t.proteinsMain}</div>
+                      <div className="text-xs font-bold text-blue-400">{totalProtein} / {macroPlan.targetP}g</div>
                     </div>
                     <div className="p-2 rounded-xl bg-slate-900/60 border border-slate-800">
-                      <div className="text-[10px] text-slate-400">Углеводы</div>
-                      <div className="text-xs font-bold text-rose-400">{totalCarbs} / {macroPlan.targetC}г</div>
+                      <div className="text-[10px] text-slate-400">{t.carbs}</div>
+                      <div className="text-xs font-bold text-rose-400">{totalCarbs} / {macroPlan.targetC}g</div>
                     </div>
                     <div className="p-2 rounded-xl bg-slate-900/60 border border-slate-800">
-                      <div className="text-[10px] text-slate-400">Жиры</div>
-                      <div className="text-xs font-bold text-amber-400">{totalFat} / {macroPlan.targetF}г</div>
+                      <div className="text-[10px] text-slate-400">{t.fats}</div>
+                      <div className="text-xs font-bold text-amber-400">{totalFat} / {macroPlan.targetF}g</div>
                     </div>
                   </div>
 
                   <div className="space-y-2 pt-2 border-t border-slate-800">
-                    <input type="text" placeholder="Блюдо или продукт" value={mealName} onChange={e => setMealName(e.target.value)} className={`w-full p-2.5 rounded-xl border text-xs ${bgInput}`} />
+                    <input type="text" placeholder={t.mealPlaceholder} value={mealName} onChange={e => setMealName(e.target.value)} className={`w-full p-2.5 rounded-xl border text-xs ${bgInput}`} />
                     <div className="grid grid-cols-4 gap-2">
-                      <input type="number" placeholder="Ккал" value={mealKcal} onChange={e => setMealKcal(e.target.value)} className={`p-2 rounded-xl border text-xs ${bgInput}`} />
-                      <input type="number" placeholder="Белки (г)" value={mealP} onChange={e => setMealP(e.target.value)} className={`p-2 rounded-xl border text-xs ${bgInput}`} />
-                      <input type="number" placeholder="Углев (г)" value={mealC} onChange={e => setMealC(e.target.value)} className={`p-2 rounded-xl border text-xs ${bgInput}`} />
-                      <input type="number" placeholder="Жиры (г)" value={mealF} onChange={e => setMealF(e.target.value)} className={`p-2 rounded-xl border text-xs ${bgInput}`} />
+                      <input type="number" placeholder={t.kcal} value={mealKcal} onChange={e => setMealKcal(e.target.value)} className={`p-2 rounded-xl border text-xs ${bgInput}`} />
+                      <input type="number" placeholder={t.proteinsMain} value={mealP} onChange={e => setMealP(e.target.value)} className={`p-2 rounded-xl border text-xs ${bgInput}`} />
+                      <input type="number" placeholder={t.carbs} value={mealC} onChange={e => setMealC(e.target.value)} className={`p-2 rounded-xl border text-xs ${bgInput}`} />
+                      <input type="number" placeholder={t.fats} value={mealF} onChange={e => setMealF(e.target.value)} className={`p-2 rounded-xl border text-xs ${bgInput}`} />
                     </div>
                     <button
                       onClick={() => {
@@ -969,7 +1096,7 @@ export default function App() {
                       }}
                       className="w-full py-2.5 rounded-xl bg-emerald-500 text-black font-bold text-xs"
                     >
-                      + Записать прием пищи (XP дается по закрытию нормы дня)
+                      {t.addMealBtn}
                     </button>
                   </div>
 
@@ -978,7 +1105,7 @@ export default function App() {
                       <div key={m.id} className="p-2 rounded-lg bg-slate-900/50 border border-slate-800 flex justify-between items-center text-xs">
                         <div>
                           <div className="font-semibold">{m.name}</div>
-                          <div className="text-[10px] text-slate-400">{m.kcal} ккал • Б:{m.p}г У:{m.c}г Ж:{m.f}г</div>
+                          <div className="text-[10px] text-slate-400">{m.kcal} {t.kcal} • P:{m.p}g C:{m.c}g F:{m.f}g</div>
                         </div>
                         <button onClick={() => {
                           const next = meals.filter(x => x.id !== m.id);
@@ -992,24 +1119,23 @@ export default function App() {
               </div>
             )}
 
-            {/* СОН: только 1 раз в день, XP только если спал от 7 до 9 часов! */}
             {healthSub === 'sleep' && (
               <div className={`p-4 rounded-2xl border ${bgCard} space-y-3`}>
                 <h3 className="text-sm font-bold flex items-center gap-2 text-indigo-400">
-                  <Moon className="w-4 h-4" /> Сон (1 запись в сутки, бонус за 7–9 часов)
+                  <Moon className="w-4 h-4" /> {t.sleepTitle}
                 </h3>
                 {todaySleepAlreadyLogged ? (
                   <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-xs text-indigo-300">
-                    ✅ Сон за сегодня ({todayStr}) уже зафиксирован! Следующая запись будет доступна завтра.
+                    {t.sleepAlready}
                   </div>
                 ) : (
                   <>
                     <div className="grid grid-cols-2 gap-2">
-                      <input type="number" step="0.5" placeholder="Часов сна" value={sleepHours} onChange={e => setSleepHours(e.target.value)} className={`p-2.5 rounded-xl border text-xs ${bgInput}`} />
+                      <input type="number" step="0.5" placeholder={t.sleepHoursPlaceholder} value={sleepHours} onChange={e => setSleepHours(e.target.value)} className={`p-2.5 rounded-xl border text-xs ${bgInput}`} />
                       <select value={sleepQuality} onChange={e => setSleepQuality(e.target.value)} className={`p-2.5 rounded-xl border text-xs ${bgInput}`}>
-                        <option value="Отлично">⚡ Отлично</option>
-                        <option value="Нормально">👌 Нормально</option>
-                        <option value="Тяжело">😴 Не выспался</option>
+                        <option value="Отлично">{t.sleepExc}</option>
+                        <option value="Нормально">{t.sleepOk}</option>
+                        <option value="Тяжело">{t.sleepBad}</option>
                       </select>
                     </div>
                     <button
@@ -1025,7 +1151,7 @@ export default function App() {
                       }}
                       className="w-full py-2.5 rounded-xl bg-indigo-500 text-white font-bold text-xs"
                     >
-                      Зафиксировать сон за сегодня (7–9 ч = +25 XP и рост Фокуса)
+                      {t.saveSleepBtn}
                     </button>
                   </>
                 )}
@@ -1033,40 +1159,21 @@ export default function App() {
                   {sleepLogs.map(s => (
                     <div key={s.id} className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 flex justify-between text-xs">
                       <span>📅 {s.date}</span>
-                      <span className="font-bold text-indigo-400">{s.hours} ч. ({s.quality})</span>
+                      <span className="font-bold text-indigo-400">{s.hours}h ({s.quality})</span>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* ТРЕНИРОВКИ: Тип, длительность + Комментарий/Рекорд */}
             {healthSub === 'workouts' && (
               <div className={`p-4 rounded-2xl border ${bgCard} space-y-3`}>
                 <h3 className="text-sm font-bold flex items-center gap-2 text-rose-400">
-                  <Dumbbell className="w-4 h-4" /> Дневник тренировок и личных рекордов
+                  <Dumbbell className="w-4 h-4" /> {t.workoutsTitle}
                 </h3>
-                <input
-                  type="text"
-                  placeholder="Тип тренировки (Зал, Бег, Борьба, Воркаут)"
-                  value={workoutTitle}
-                  onChange={e => setWorkoutTitle(e.target.value)}
-                  className={`w-full p-2.5 rounded-xl border text-xs ${bgInput}`}
-                />
-                <input
-                  type="text"
-                  placeholder="Длительность (напр. 60 мин)"
-                  value={workoutDur}
-                  onChange={e => setWorkoutDur(e.target.value)}
-                  className={`w-full p-2.5 rounded-xl border text-xs ${bgInput}`}
-                />
-                <textarea
-                  rows={2}
-                  placeholder="Комментарий / Личный рекорд (для себя, без XP)"
-                  value={workoutComment}
-                  onChange={e => setWorkoutComment(e.target.value)}
-                  className={`w-full p-2.5 rounded-xl border text-xs ${bgInput}`}
-                />
+                <input type="text" placeholder={t.workoutTypePlaceholder} value={workoutTitle} onChange={e => setWorkoutTitle(e.target.value)} className={`w-full p-2.5 rounded-xl border text-xs ${bgInput}`} />
+                <input type="text" placeholder={t.workoutDurPlaceholder} value={workoutDur} onChange={e => setWorkoutDur(e.target.value)} className={`w-full p-2.5 rounded-xl border text-xs ${bgInput}`} />
+                <textarea rows={2} placeholder={t.workoutCommPlaceholder} value={workoutComment} onChange={e => setWorkoutComment(e.target.value)} className={`w-full p-2.5 rounded-xl border text-xs ${bgInput}`} />
                 <button
                   onClick={() => {
                     if (!workoutTitle.trim()) return;
@@ -1077,7 +1184,7 @@ export default function App() {
                   }}
                   className="w-full py-2.5 rounded-xl bg-rose-500 text-white font-bold text-xs"
                 >
-                  Сохранить тренировку (+0.4% к Силе тела)
+                  {t.saveWorkoutBtn}
                 </button>
                 <div className="space-y-2 pt-2">
                   {workouts.map(w => (
@@ -1116,79 +1223,53 @@ export default function App() {
               ))}
             </div>
 
-            {/* План на день vs Итог (СТРОГО 1 РАЗ В ДЕНЬ!) */}
             {focusSub === 'goals' && (
               <div className="space-y-4">
                 <div className={`p-4 rounded-2xl border ${bgCard} space-y-3`}>
                   <div className="flex justify-between items-center">
-                    <h3 className="text-sm font-bold text-emerald-400">План на день vs Реальный итог ({todayStr})</h3>
-                    <span className="text-[10px] text-slate-400">1 раз в сутки</span>
+                    <h3 className="text-sm font-bold text-emerald-400">{t.planVsReview} ({todayStr})</h3>
+                    <span className="text-[10px] text-slate-400">{t.oncePerDay}</span>
                   </div>
 
                   {todayPlanAlreadyArchived ? (
                     <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-300">
-                      ✅ Итоги за {todayStr} уже подведены и сохранены в истории ниже! Новая запись откроется завтра.
+                      {t.planArchivedMsg}
                     </div>
                   ) : (
                     <>
-                      <textarea
-                        rows={3}
-                        placeholder="☀️ УТРО: Что я планирую сделать сегодня?"
-                        value={dailyMorningPlan}
-                        onChange={e => setDailyMorningPlan(e.target.value)}
-                        onBlur={() => syncToCloud(xp, { dailyMorningPlan })}
-                        className={`w-full p-2.5 rounded-xl border text-xs ${bgInput}`}
-                      />
-                      <textarea
-                        rows={3}
-                        placeholder="🌙 ВЕЧЕР: Что реально сделал по итогу дня?"
-                        value={dailyEveningReview}
-                        onChange={e => setDailyEveningReview(e.target.value)}
-                        onBlur={() => syncToCloud(xp, { dailyEveningReview })}
-                        className={`w-full p-2.5 rounded-xl border text-xs ${bgInput}`}
-                      />
+                      <textarea rows={3} placeholder={t.morningPlaceholder} value={dailyMorningPlan} onChange={e => setDailyMorningPlan(e.target.value)} onBlur={() => syncToCloud(xp, { dailyMorningPlan })} className={`w-full p-2.5 rounded-xl border text-xs ${bgInput}`} />
+                      <textarea rows={3} placeholder={t.eveningPlaceholder} value={dailyEveningReview} onChange={e => setDailyEveningReview(e.target.value)} onBlur={() => syncToCloud(xp, { dailyEveningReview })} className={`w-full p-2.5 rounded-xl border text-xs ${bgInput}`} />
                       <button
                         onClick={() => {
-                          if (!dailyMorningPlan.trim() || !dailyEveningReview.trim()) {
-                            alert("Заполни и утренний план, и вечерний итог перед закрытием дня!");
-                            return;
-                          }
-                          const entry = {
-                            id: Date.now(),
-                            dateIso: todayIso,
-                            date: todayStr,
-                            plan: dailyMorningPlan,
-                            review: dailyEveningReview
-                          };
+                          if (!dailyMorningPlan.trim() || !dailyEveningReview.trim()) return;
+                          const entry = { id: Date.now(), dateIso: todayIso, date: todayStr, plan: dailyMorningPlan, review: dailyEveningReview };
                           const nextHist = [entry, ...dailyHistory];
                           setDailyHistory(nextHist);
                           grantRewardOnce(`plan_${todayIso}`, 25, { discipline: 0.3, mind: 0.2 }, {
-                            dailyHistory: nextHist,
-                            dailyMorningPlan: "",
-                            dailyEveningReview: ""
+                            dailyHistory: nextHist, dailyMorningPlan: "", dailyEveningReview: ""
                           });
                         }}
                         className="w-full py-2.5 rounded-xl bg-emerald-500 text-black font-bold text-xs"
                       >
-                        Подвести итог дня и сохранить в архив (+25 XP)
+                        {t.saveDayArchiveBtn}
                       </button>
                     </>
                   )}
                 </div>
 
                 <div className={`p-4 rounded-2xl border ${bgCard} space-y-3`}>
-                  <h4 className="text-xs font-bold text-slate-400 uppercase">📜 История прошлых дней ({dailyHistory.length})</h4>
+                  <h4 className="text-xs font-bold text-slate-400 uppercase">{t.historyDays} ({dailyHistory.length})</h4>
                   <div className="space-y-3 max-h-72 overflow-y-auto">
                     {dailyHistory.map(item => (
                       <div key={item.id} className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2 text-xs">
                         <div className="font-bold text-emerald-400">📅 {item.date}</div>
                         <div className="grid grid-cols-2 gap-2">
                           <div className="p-2 rounded bg-slate-950/60">
-                            <div className="text-[10px] text-amber-400 font-bold">Хотел сделать:</div>
+                            <div className="text-[10px] text-amber-400 font-bold">{t.wantedToDo}</div>
                             <div className="whitespace-pre-wrap">{item.plan}</div>
                           </div>
                           <div className="p-2 rounded bg-slate-950/60">
-                            <div className="text-[10px] text-emerald-400 font-bold">Сделал по итогу:</div>
+                            <div className="text-[10px] text-emerald-400 font-bold">{t.didInFact}</div>
                             <div className="whitespace-pre-wrap">{item.review}</div>
                           </div>
                         </div>
@@ -1199,14 +1280,11 @@ export default function App() {
               </div>
             )}
 
-            {/* Таймеры привычек: XP только за 1д, 2д, 7д, 30д + Кнопка сброса с подтверждением, Попыткой #N и Рекордом */}
             {focusSub === 'habits' && (
               <div className={`p-4 rounded-2xl border ${bgCard} space-y-3`}>
                 <div>
-                  <h3 className="text-sm font-bold">Таймеры привычек и воздержания</h3>
-                  <p className="text-[11px] text-slate-400">
-                    За создание таймера XP не дается. Опыт начисляется автоматически за выдержку: 1 день, 2 дня, 1 неделя, 1 месяц.
-                  </p>
+                  <h3 className="text-sm font-bold">{t.habitsTitle}</h3>
+                  <p className="text-[11px] text-slate-400">{t.habitsSub}</p>
                 </div>
 
                 <div className="space-y-2.5">
@@ -1220,14 +1298,14 @@ export default function App() {
                             <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold mr-1.5 ${
                               h.type === 'bad' ? 'bg-rose-500/20 text-rose-400' : 'bg-emerald-500/20 text-emerald-400'
                             }`}>
-                              {h.type === 'bad' ? 'Отказ' : 'Привычка'}
+                              {h.type === 'bad' ? t.tagBad : t.tagGood}
                             </span>
                             <span className="font-bold text-xs">{h.name}</span>
                             {h.motiv && <div className="text-[11px] text-slate-400 mt-0.5">«{h.motiv}»</div>}
                           </div>
                           <div className="text-right">
                             <div className="text-[10px] text-amber-400 font-bold">
-                              Попытка #{h.attempts || 1} • Рекорд: {bestRec} дн.
+                              {t.attempt} #{h.attempts || 1} • {t.record} {bestRec} {t.daysShort}
                             </div>
                             <div className="font-mono text-xs font-bold text-emerald-400 mt-0.5">
                               {formatTimer(h.start)}
@@ -1238,12 +1316,9 @@ export default function App() {
                         <div className="flex justify-between items-center pt-1 border-t border-slate-800/80">
                           <button
                             onClick={() => {
-                              if (window.confirm(`Вы точно хотите сбросить прогресс по привычке «${h.name}» и начать сначала?`)) {
+                              if (window.confirm(`${t.resetHabitBtn}: «${h.name}»?`)) {
                                 const next = habits.map(x => x.id === h.id ? {
-                                  ...x,
-                                  start: Date.now(),
-                                  attempts: (x.attempts || 1) + 1,
-                                  maxRecordDays: bestRec
+                                  ...x, start: Date.now(), attempts: (x.attempts || 1) + 1, maxRecordDays: bestRec
                                 } : x);
                                 setHabits(next);
                                 syncToCloud(xp, { habits: next });
@@ -1251,11 +1326,11 @@ export default function App() {
                             }}
                             className="text-[11px] text-rose-400 flex items-center gap-1 font-semibold"
                           >
-                            <RotateCcw className="w-3 h-3" /> Сбросить прогресс (срыв)
+                            <RotateCcw className="w-3 h-3" /> {t.resetHabitBtn}
                           </button>
                           <button
                             onClick={() => {
-                              if (window.confirm("Удалить этот таймер полностью?")) {
+                              if (window.confirm(`${t.deleteBtn}?`)) {
                                 const next = habits.filter(x => x.id !== h.id);
                                 setHabits(next);
                                 syncToCloud(xp, { habits: next });
@@ -1263,7 +1338,7 @@ export default function App() {
                             }}
                             className="text-[11px] text-slate-500 hover:text-rose-400"
                           >
-                            Удалить
+                            {t.deleteBtn}
                           </button>
                         </div>
                       </div>
@@ -1273,11 +1348,11 @@ export default function App() {
 
                 <div className="pt-3 border-t border-slate-800 space-y-2">
                   <div className="grid grid-cols-2 gap-2">
-                    <button onClick={() => setHabitType('bad')} className={`py-1.5 rounded-lg text-xs font-bold border ${habitType === 'bad' ? 'border-rose-500 bg-rose-500/20 text-rose-400' : 'border-slate-700 text-slate-400'}`}>🛑 Вредная (Отказ)</button>
-                    <button onClick={() => setHabitType('good')} className={`py-1.5 rounded-lg text-xs font-bold border ${habitType === 'good' ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400' : 'border-slate-700 text-slate-400'}`}>🌱 Хорошая (Внедрение)</button>
+                    <button onClick={() => setHabitType('bad')} className={`py-1.5 rounded-lg text-xs font-bold border ${habitType === 'bad' ? 'border-rose-500 bg-rose-500/20 text-rose-400' : 'border-slate-700 text-slate-400'}`}>{t.badHabitBtn}</button>
+                    <button onClick={() => setHabitType('good')} className={`py-1.5 rounded-lg text-xs font-bold border ${habitType === 'good' ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400' : 'border-slate-700 text-slate-400'}`}>{t.goodHabitBtn}</button>
                   </div>
-                  <input type="text" placeholder="Название привычки" value={habitName} onChange={e => setHabitName(e.target.value)} className={`w-full p-2.5 rounded-xl border text-xs ${bgInput}`} />
-                  <input type="text" placeholder="Мотивация (зачем?)" value={habitMotiv} onChange={e => setHabitMotiv(e.target.value)} className={`w-full p-2.5 rounded-xl border text-xs ${bgInput}`} />
+                  <input type="text" placeholder={t.habitNamePh} value={habitName} onChange={e => setHabitName(e.target.value)} className={`w-full p-2.5 rounded-xl border text-xs ${bgInput}`} />
+                  <input type="text" placeholder={t.habitMotivPh} value={habitMotiv} onChange={e => setHabitMotiv(e.target.value)} className={`w-full p-2.5 rounded-xl border text-xs ${bgInput}`} />
                   <button
                     onClick={() => {
                       if (!habitName.trim()) return;
@@ -1291,7 +1366,7 @@ export default function App() {
                     }}
                     className="w-full py-2.5 rounded-xl bg-emerald-500 text-black font-bold text-xs"
                   >
-                    + Запустить таймер
+                    {t.startTimerBtn}
                   </button>
                 </div>
               </div>
@@ -1299,13 +1374,13 @@ export default function App() {
 
             {focusSub === 'q16' && (
               <div className="space-y-3">
-                {QUESTIONS_16.map((q, i) => (
+                {questionsList.map((q, i) => (
                   <div key={i} className={`p-4 rounded-xl border ${bgCard} space-y-2`}>
-                    <div className="text-xs font-bold text-emerald-400">Вопрос #{i + 1}</div>
+                    <div className="text-xs font-bold text-emerald-400">{t.questionNum}{i + 1}</div>
                     <div className="text-xs font-semibold">{q}</div>
                     <textarea
                       rows={2}
-                      placeholder="Твой ответ..."
+                      placeholder={t.answerPh}
                       value={answers16[i] || ""}
                       onChange={e => setAnswers16({ ...answers16, [i]: e.target.value })}
                       onBlur={() => {
@@ -1324,7 +1399,7 @@ export default function App() {
           </div>
         )}
 
-        {/* ==================== 4. ВКЛАДКА "КАЛЕНДАРЬ И ЗАМЕТКИ" (Без XP, с отображением дат событий) ==================== */}
+        {/* ==================== 4. ВКЛАДКА "КАЛЕНДАРЬ И ЗАМЕТКИ" ==================== */}
         {activeTab === 'calendar' && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-2">
@@ -1332,41 +1407,36 @@ export default function App() {
                 onClick={() => setCalSub('schedule')}
                 className={`py-2.5 rounded-xl text-xs font-bold border ${calSub === 'schedule' ? 'bg-emerald-500 text-black border-emerald-500' : `${bgCard} text-slate-400`}`}
               >
-                📅 Расписание и События
+                {t.schedTab}
               </button>
               <button
                 onClick={() => setCalSub('notes')}
                 className={`py-2.5 rounded-xl text-xs font-bold border ${calSub === 'notes' ? 'bg-emerald-500 text-black border-emerald-500' : `${bgCard} text-slate-400`}`}
               >
-                📝 Заметки и Списки
+                {t.notesTab}
               </button>
             </div>
 
             {calSub === 'schedule' && (
               <div className={`p-4 rounded-2xl border ${bgCard} space-y-3`}>
                 <div className="flex justify-between items-center">
-                  <h3 className="text-sm font-bold text-emerald-400">Планировщик событий</h3>
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={e => setSelectedDate(e.target.value)}
-                    className={`p-1.5 rounded-lg border text-xs ${bgInput}`}
-                  />
+                  <h3 className="text-sm font-bold text-emerald-400">{t.schedTitle}</h3>
+                  <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className={`p-1.5 rounded-lg border text-xs ${bgInput}`} />
                 </div>
 
                 <div className="grid grid-cols-3 gap-2">
                   <input type="time" value={eventTime} onChange={e => setEventTime(e.target.value)} className={`p-2 rounded-xl border text-xs ${bgInput}`} />
                   <select value={eventCat} onChange={e => setEventCat(e.target.value)} className={`col-span-2 p-2 rounded-xl border text-xs ${bgInput}`}>
-                    <option value="Дело">💼 Дело / Работа</option>
-                    <option value="Здоровье">💪 Тренировка</option>
-                    <option value="Фокус">🧠 Учеба / Фокус</option>
-                    <option value="Встреча">🤝 Встреча</option>
+                    <option value="Дело">{t.catWork}</option>
+                    <option value="Здоровье">{t.catHealth}</option>
+                    <option value="Фокус">{t.catFocus}</option>
+                    <option value="Встреча">{t.catMeet}</option>
                   </select>
                 </div>
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    placeholder={`Событие на ${selectedDate}...`}
+                    placeholder={`${t.eventPh} ${selectedDate}...`}
                     value={eventTitle}
                     onChange={e => setEventTitle(e.target.value)}
                     className={`flex-1 p-2.5 rounded-xl border text-xs ${bgInput}`}
@@ -1382,13 +1452,13 @@ export default function App() {
                     }}
                     className="px-4 rounded-xl bg-emerald-500 text-black font-bold text-xs"
                   >
-                    + Добавить
+                    {t.addBtn}
                   </button>
                 </div>
 
                 <div className="space-y-2 pt-2">
                   {events.length === 0 ? (
-                    <div className="text-xs text-slate-500 text-center py-6">Событий пока нет. Выбери дату и добавь задачу!</div>
+                    <div className="text-xs text-slate-500 text-center py-6">{t.noEvents}</div>
                   ) : (
                     events.map(ev => (
                       <div key={ev.id} className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between text-xs">
@@ -1406,12 +1476,9 @@ export default function App() {
                             {ev.done && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                           </button>
                           <div>
-                            <div className={`font-bold ${ev.done ? 'line-through text-slate-500' : ''}`}>
-                              {ev.title}
-                            </div>
-                            {/* Отображение точной даты и времени события */}
+                            <div className={`font-bold ${ev.done ? 'line-through text-slate-500' : ''}`}>{ev.title}</div>
                             <div className="text-[10px] text-emerald-400 font-mono mt-0.5">
-                              📅 {ev.date} в {ev.time} • <span className="text-slate-400">{ev.category}</span>
+                              📅 {ev.date} • {ev.time} • <span className="text-slate-400">{ev.category}</span>
                             </div>
                           </div>
                         </div>
@@ -1432,39 +1499,21 @@ export default function App() {
 
             {calSub === 'notes' && (
               <div className={`p-4 rounded-2xl border ${bgCard} space-y-3`}>
-                <h3 className="text-sm font-bold text-amber-400">Заметки и списки</h3>
-                <input
-                  type="text"
-                  placeholder="🔍 Поиск по заметкам..."
-                  value={noteSearch}
-                  onChange={e => setNoteSearch(e.target.value)}
-                  className={`w-full p-2 rounded-xl border text-xs ${bgInput}`}
-                />
-                <input
-                  type="text"
-                  placeholder="Заголовок заметки"
-                  value={noteTitle}
-                  onChange={e => setNoteTitle(e.target.value)}
-                  className={`w-full p-2.5 rounded-xl border text-xs font-bold ${bgInput}`}
-                />
-                <textarea
-                  rows={3}
-                  placeholder="Текст заметки или список покупок..."
-                  value={noteText}
-                  onChange={e => setNoteText(e.target.value)}
-                  className={`w-full p-2.5 rounded-xl border text-xs ${bgInput}`}
-                />
+                <h3 className="text-sm font-bold text-amber-400">{t.notesTitle}</h3>
+                <input type="text" placeholder={t.searchNotesPh} value={noteSearch} onChange={e => setNoteSearch(e.target.value)} className={`w-full p-2 rounded-xl border text-xs ${bgInput}`} />
+                <input type="text" placeholder={t.noteTitlePh} value={noteTitle} onChange={e => setNoteTitle(e.target.value)} className={`w-full p-2.5 rounded-xl border text-xs font-bold ${bgInput}`} />
+                <textarea rows={3} placeholder={t.noteTextPh} value={noteText} onChange={e => setNoteText(e.target.value)} className={`w-full p-2.5 rounded-xl border text-xs ${bgInput}`} />
                 <button
                   onClick={() => {
                     if (!noteTitle.trim() && !noteText.trim()) return;
-                    const next = [{ id: Date.now(), title: noteTitle || "Заметка", text: noteText, date: todayStr }, ...notes];
+                    const next = [{ id: Date.now(), title: noteTitle || "Note", text: noteText, date: todayStr }, ...notes];
                     setNotes(next);
                     setNoteTitle(""); setNoteText("");
                     syncToCloud(xp, { notes: next });
                   }}
                   className="w-full py-2.5 rounded-xl bg-amber-500 text-black font-bold text-xs"
                 >
-                  + Сохранить заметку
+                  {t.saveNoteBtn}
                 </button>
                 <div className="space-y-2 pt-2">
                   {notes
@@ -1489,7 +1538,7 @@ export default function App() {
           </div>
         )}
 
-        {/* ==================== 5. ВКЛАДКА "ИИ" (Персональный нейро-ассистент) ==================== */}
+        {/* ==================== 5. ВКЛАДКА "ИИ" ==================== */}
         {activeTab === 'ai' && (
           <div className={`p-4 rounded-2xl border ${bgCard} flex flex-col h-[72vh]`}>
             <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
@@ -1498,22 +1547,21 @@ export default function App() {
                   <Bot className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-sm font-bold">Нейро-Ментор LIFE OS</div>
-                  <div className="text-[10px] text-emerald-400">Анализирует твой календарь, БЖУ, заметки и цели</div>
+                  <div className="text-sm font-bold">{t.aiTitle}</div>
+                  <div className="text-[10px] text-emerald-400">{t.aiSub}</div>
                 </div>
               </div>
             </div>
 
-            {/* Быстрые кнопки запросов к ИИ */}
             <div className="flex gap-1.5 overflow-x-auto pb-2 mb-2 shrink-0">
-              <button onClick={() => handleSendAiMessage("Что мне нужно сегодня сделать по календарю и режиму?")} className="px-2.5 py-1.5 rounded-lg bg-slate-800 text-[11px] text-emerald-400 whitespace-nowrap border border-slate-700">
-                📋 Что мне сегодня сделать?
+              <button onClick={() => handleSendAiMessage(t.aiQuick1)} className="px-2.5 py-1.5 rounded-lg bg-slate-800 text-[11px] text-emerald-400 whitespace-nowrap border border-slate-700">
+                {t.aiQuick1}
               </button>
-              <button onClick={() => handleSendAiMessage("Разбери мое питание и норму БЖУ на сегодня")} className="px-2.5 py-1.5 rounded-lg bg-slate-800 text-[11px] text-amber-400 whitespace-nowrap border border-slate-700">
-                🍽️ Анализ моего БЖУ
+              <button onClick={() => handleSendAiMessage(t.aiQuick2)} className="px-2.5 py-1.5 rounded-lg bg-slate-800 text-[11px] text-amber-400 whitespace-nowrap border border-slate-700">
+                {t.aiQuick2}
               </button>
-              <button onClick={() => handleSendAiMessage("Покажи мои заметки и дай совет")} className="px-2.5 py-1.5 rounded-lg bg-slate-800 text-[11px] text-cyan-400 whitespace-nowrap border border-slate-700">
-                📝 Мои заметки и фокус
+              <button onClick={() => handleSendAiMessage(t.aiQuick3)} className="px-2.5 py-1.5 rounded-lg bg-slate-800 text-[11px] text-cyan-400 whitespace-nowrap border border-slate-700">
+                {t.aiQuick3}
               </button>
             </div>
 
@@ -1534,7 +1582,7 @@ export default function App() {
             <div className="flex gap-2 pt-3 mt-2 border-t border-slate-800">
               <input
                 type="text"
-                placeholder="Напиши ИИ (спроси совет, план на день, разбор)..."
+                placeholder={t.aiInputPh}
                 value={aiInput}
                 onChange={e => setAiInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSendAiMessage()}
@@ -1557,9 +1605,9 @@ export default function App() {
               <div className="flex justify-between items-center">
                 <div>
                   <h3 className="text-sm font-bold flex items-center gap-1.5 text-emerald-400">
-                    <Shield className="w-4 h-4" /> Гильдия @life_is_rpg_game
+                    <Shield className="w-4 h-4" /> {t.guildTitle}
                   </h3>
-                  <p className="text-[11px] text-slate-400">Твой уровень ({level} LVL) и опыт ({xp} XP) синхронизированы</p>
+                  <p className="text-[11px] text-slate-400">{t.guildSub} ({level} LVL • {xp} XP)</p>
                 </div>
                 <a
                   href="https://t.me/life_is_rpg_game"
@@ -1567,14 +1615,14 @@ export default function App() {
                   rel="noreferrer"
                   className="px-3 py-1.5 rounded-xl bg-emerald-500 text-black font-bold text-xs flex items-center gap-1"
                 >
-                  Канал <ExternalLink className="w-3.5 h-3.5" />
+                  {t.channelBtn} <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
 
               <div className="flex gap-2 pt-1">
                 <input
                   type="text"
-                  placeholder="Твой ник в Гильдии"
+                  placeholder={t.nickPh}
                   value={newNickInput}
                   onChange={e => setNewNickInput(e.target.value)}
                   className={`flex-1 p-2 rounded-xl border text-xs ${bgInput}`}
@@ -1593,26 +1641,26 @@ export default function App() {
                   }}
                   className="px-3 rounded-xl bg-slate-800 text-emerald-400 border border-emerald-500/30 font-bold text-xs"
                 >
-                  Сохранить ник
+                  {t.saveNickBtn}
                 </button>
               </div>
             </div>
 
             <div className="p-4 rounded-2xl bg-gradient-to-b from-[#161f30] to-[#0f172a] border border-emerald-500/30 text-center">
               <div className="text-xs text-emerald-400 uppercase font-semibold flex items-center justify-center gap-1">
-                <Clock className="w-4 h-4" /> До розыгрыша награды и нового квеста:
+                <Clock className="w-4 h-4" /> {t.timerTitle}
               </div>
               <div className="text-2xl font-mono font-black text-white py-1">
-                {timeLeft.d}д {timeLeft.h}ч {timeLeft.m}м {timeLeft.s}с
+                {timeLeft.d}d {timeLeft.h}h {timeLeft.m}m {timeLeft.s}s
               </div>
-              <div className="text-[11px] text-slate-400">Каждое воскресенье в 10:00 МСК</div>
+              <div className="text-[11px] text-slate-400">{t.sunday10}</div>
             </div>
 
             <div className={`p-4 rounded-2xl border ${bgCard} space-y-3`}>
               <div className="flex justify-between items-start">
                 <div>
                   <span className="text-[10px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-full">
-                    ЕЖЕНЕДЕЛЬНОЕ ЗАДАНИЕ ГИЛЬДИИ
+                    {t.weeklyQuestBadge}
                   </span>
                   <h2 className="text-base font-bold mt-1">{activeQuest.title}</h2>
                 </div>
@@ -1639,7 +1687,7 @@ export default function App() {
                     environment: Math.min(100, +(spheres.environment + 0.5).toFixed(2))
                   };
                   setSpheres(nextSpheres);
-                  localStorage.setItem(`lifeos_v3_${userId}`, JSON.stringify({
+                  localStorage.setItem(`lifeos_v4_${userId}`, JSON.stringify({
                     nickname, xp: nextXp, weeklyDone: true, app_state: getFullAppState({ spheres: nextSpheres })
                   }));
                   fetch(`${API_BASE}/api/sync/${userId}`, {
@@ -1655,19 +1703,18 @@ export default function App() {
                   weeklyDone ? 'bg-slate-800 text-emerald-400' : 'bg-emerald-500 text-black'
                 }`}
               >
-                {weeklyDone ? "✅ Квест недели выполнен!" : `⚡ Выполнить квест (+${activeQuest.xp_reward || 100} XP)`}
+                {weeklyDone ? t.questDoneBtn : `${t.questDoBtn} (+${activeQuest.xp_reward || 100} XP)`}
               </button>
             </div>
 
-            {/* Общий рейтинг Гильдии с актуальными уровнями */}
             <div className={`p-4 rounded-2xl border ${bgCard} space-y-2.5`}>
               <h4 className="text-xs font-bold flex items-center gap-1.5">
-                <Trophy className="w-4 h-4 text-amber-400" /> Рейтинг игроков Гильдии ({leaderboard.length})
+                <Trophy className="w-4 h-4 text-amber-400" /> {t.leaderboardTitle} ({leaderboard.length})
               </h4>
               <div className="space-y-1.5 max-h-64 overflow-y-auto">
                 {leaderboard.map((u, i) => {
-                  const displayLvl = u.telegram_id === userId ? Math.max(u.level || 0, level) : (u.level || 0);
-                  const displayXp = u.telegram_id === userId ? Math.max(u.xp || 0, xp) : (u.xp || 0);
+                  const displayLvl = u.telegram_id === userId ? level : (u.level || 0);
+                  const displayXp = u.telegram_id === userId ? xp : (u.xp || 0);
                   return (
                     <div
                       key={u.telegram_id}
@@ -1682,7 +1729,7 @@ export default function App() {
                           LVL {displayLvl}
                         </span>
                       </div>
-                      <span className="text-[11px] text-slate-400">{displayXp} XP • {u.quests} кв.</span>
+                      <span className="text-[11px] text-slate-400">{displayXp} XP • {u.quests} {t.questsShort}</span>
                     </div>
                   );
                 })}
@@ -1692,7 +1739,7 @@ export default function App() {
         )}
       </main>
 
-      {/* НИЖНЯЯ ПАНЕЛЬ НА 6 ВКЛАДОК (С ИИ ВМЕСТО ОТДЕЛЬНЫХ ЗАМЕТОК) */}
+      {/* НИЖНЯЯ НАВИГАЦИЯ */}
       <nav className={`fixed bottom-0 left-0 right-0 ${isLight ? 'bg-white border-slate-200' : 'bg-[#0f172a]/95 border-slate-800'} backdrop-blur-md border-t grid grid-cols-6 py-1.5 px-1 z-30`}>
         {[
           { id: 'me', label: t.me, icon: User },
